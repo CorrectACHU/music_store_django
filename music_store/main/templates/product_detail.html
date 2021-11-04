@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content%}
+<nav aria-label="breadcrumb" style="margin-left: 20px; margin-top: 20px; margin-bottom: 20px;">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'base' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="#">{{ product.category}}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ product.title }}</li>
+    </ol>
+</nav>
+<div class="row text-center" style="margin-left: 20px;">
+    <div class="col-md-5" style="margin-left: 100px;">
+        <img src="{{ product.image.url }}" class="img-fluid" alt="">
+    </div>
+    <div class="col-md-4" style="margin-top: 100px;">
+        <h2>{{product.title}}</h2>
+        <p>Описание: {{product.description}}</p>
+        <h3>{{product.price}} BYN</h3>
+        <a href="{% url 'add_to_cart' ct_model=ct_model slug=product.slug %}">
+            <button class="btn btn-danger">Добавить в корзину</button>
+        </a>
+    </div>
+
+
+    <div class="text-center">
+        <h2 class="mt-4">Характристики: </h2>
+        {% if product.category.slug == 'earphonesproduct' %}
+        {% include 'earphones_specifications.html'%}
+        {% else %}
+        {% include 'speakers_specifications.html'%}
+        {% endif %}
+    </div>
+</div>
+
+
+{% endblock %}
+

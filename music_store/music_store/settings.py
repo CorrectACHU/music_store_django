@@ -125,7 +125,7 @@ MEDIA_URL = '/media/' #ссылка по которой будут находи�
 MEDIA_ROOT = os.path.join(BASE_DIR,'media')
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static_dev ')
+    os.path.join(BASE_DIR, 'static_dev'),
 ) # те директории , в которых джанго будет искать новые файлы для проекта
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

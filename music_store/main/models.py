@@ -2,18 +2,75 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.urls import reverse
 
 # Create your models here.
 
 User = get_user_model()
 
 
+class LatestProductsManager:
+    @staticmethod
+    def get_products_for_main_page(*args, **kwargs):
+        with_respect_to = kwargs.get('with_respect_to')
+        products = []
+        ct_models = ContentType.objects.filter(model__in=args)
+        for ct_model in ct_models:
+            model_products = ct_model.model_class()._base_manager.all().order_by('-id')[:5]
+            products.extend(model_products)
+        if with_respect_to:
+            ct_model = ContentType.objects.filter(model=with_respect_to)
+            if ct_model.exists():
+                if with_respect_to in args:
+                    return sorted(
+                        products, key=lambda x: x.__class__._meta.model_name.startswith(with_respect_to), reverse=True
+                    )
+        return products
+
+
+class LatestProducts:
+    objects = LatestProductsManager()
+
+
+def get_models_for_count(*model_names):
+    return [models.Count(model_name) for model_name in model_names]
+
+
+def get_product_url(obj, viewname, model_name):
+    ct_model = obj.__class__._meta.model_name
+    return reverse(viewname, kwargs={'ct_model': ct_model, 'slug': obj.slug})
+
+
+class CategoryManager(models.Manager):
+    CATEGORY_NAME_COUNT_NAME = {
+        'Наушники': 'earphonesproduct__count',
+        'Колонки': 'speakersproduct__count'
+    }
+
+    def get_queryset(self):
+        return super().get_queryset()
+
+    def get_category_counts(self):
+        models = get_models_for_count('earphonesproduct', 'speakersproduct')
+        qs = list(self.get_queryset().annotate(*models))
+        data = [
+            dict(name=c.name, url=c.get_absolute_url(), count=getattr(c, self.CATEGORY_NAME_COUNT_NAME[c.name]))
+            for c in qs
+        ]
+        return data
+
+
 class Category(models.Model):
     name = models.CharField(max_length=100, verbose_name='Категория товара')
     slug = models.SlugField(unique=True)
+    objects = CategoryManager()
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse('category_detail', kwargs={'slug': self.slug})
+
 
 class Product(models.Model):
     class Meta:
@@ -33,18 +90,23 @@ class Product(models.Model):
 class EarphonesProduct(Product):
     type = models.CharField(max_length=50, verbose_name='Тип')
     construction = models.CharField(max_length=50, verbose_name='Конструкция')
-    wireless = models.BooleanField(default=False)
+    wireless = models.BooleanField(default=False, verbose_name='Беспроводные')
+    cable_len = models.CharField(max_length=50, verbose_name='Длина кабеля', null=True, blank=True)
     frequency = models.CharField(max_length=100, verbose_name='Частотный дипозон')
     sensitivities = models.CharField(max_length=60, verbose_name='Чувствительность')
 
     def __str__(self):
         return "{} : {}".format(self.category.name, self.title)
 
+    def get_absolute_url(self):
+        return get_product_url(self, 'product_detail', self.category.slug)
+
+
 class SpeakersProduct(Product):
     TYPE_SPEAKERS = [
-        ('BT', 'Bluetooth - колонка'),
-        ('SMART', 'Умная колонка'),
-        ('USUAL', 'Проводная колонка')
+        ('Bluetooth - колонка', 'Bluetooth - колонка'),
+        ('Умная колонка', 'Умная колонка'),
+        ('Проводная колонка', 'Проводная колонка')
     ]
 
     type = models.CharField(max_length=50, verbose_name='Тип', choices=TYPE_SPEAKERS)
@@ -53,6 +115,10 @@ class SpeakersProduct(Product):
 
     def __str__(self):
         return "{} : {}".format(self.category.name, self.title)
+
+    def get_absolute_url(self):
+        return get_product_url(self, 'product_detail', self.category.slug)
+
 
 class CartProduct(models.Model):
     user = models.ForeignKey('Customer', verbose_name='Покупатель', on_delete=models.CASCADE)
@@ -64,7 +130,11 @@ class CartProduct(models.Model):
     final_price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Общая цена')
 
     def __str__(self):
-        return "Продукт: {} (для корзины)".format(self.product.title)
+        return "Продукт: {} (для корзины)".format(self.content_object.title)
+
+    def save(self,*args,**kwargs):
+        self.final_price = self.qty * self.content_object.price
+        super().save(*args,**kwargs)
 
 
 class Cart(models.Model):
@@ -72,6 +142,8 @@ class Cart(models.Model):
     products = models.ManyToManyField(CartProduct, blank=True, related_name='related_cart')
     total_products = models.PositiveIntegerField(default=0)
     final_price = models.DecimalField(max_digits=9, decimal_places=2, verbose_name='Общая цена', default=0)
+    in_order = models.BooleanField(default=False)
+    for_anonymous_user = models.BooleanField(default=False)
 
 
 class Customer(models.Model):
@@ -81,4 +153,3 @@ class Customer(models.Model):
 
     def __str__(self):
         return "Покупатель : {} {}".format(self.user.first_name, self.user.last_name)
-

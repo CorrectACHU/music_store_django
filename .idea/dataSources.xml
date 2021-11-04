@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="db" uuid="91801e7a-4a51-4bc4-bbdb-1d292fa023d7">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:D:\music_store_django\music_store\db.sqlite3</jdbc-url>
+    </data-source>
+    <data-source source="LOCAL" name="db.sqlite3" uuid="39788aa7-e673-4e35-8d1c-dd0334e5052b">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/music_store/db.sqlite3</jdbc-url>
+    </data-source>
+  </component>
+</project>
