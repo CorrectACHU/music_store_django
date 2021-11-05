@@ -2,6 +2,40 @@
 
 {% block content %}
 
-{{ category.name }}
+<nav aria-label="breadcrumb" style="margin-left: 20px; margin-top: 20px; margin-bottom: 20px;">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'base' %}">Главная</a></li>
+        <li class="breadcrumb-item active">{{ category}}</li>
+    </ol>
+</nav>
+<div class="container px-4 px-lg-5 mt-5">
+    <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+        {% for product in category_products %}
+        <div class="col mb-5">
+            <div class="card h-100">
+                <!-- Product image-->
+                <a href="{{ product.get_absolute_url }}"><img class="img img-fluid" src="{{ product.image.url }}" alt="..." /></a>
+                <!-- Product details-->
+                <div class="card-body p-4">
+                    <div class="text-center">
+                        <!-- Product name-->
+                        <a href="{{ product.get_absolute_url }}"><h5 class="fw-bolder">{{ product.title }}</h5></a>
+                        <!-- Product price-->
 
+                    </div>
+                    <h4 class="text-center">{{ product.price}}BYN</h4>
+                </div>
+                <!-- Product actions-->
+                <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                    <div class="text-center">
+                        <a class="btn btn-outline-dark mt-auto" href="{% url 'add_to_cart' ct_model=product.get_model_name slug=product.slug %}">
+                            Добавить в корзину
+                        </a>
+                    </div>
+                </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+</div>
 {% endblock %}

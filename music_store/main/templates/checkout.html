@@ -1,0 +1,56 @@
+{% extends 'base.html'%}
+{% load crispy_forms_tags %}
+{% block content %}
+<h3 class="text-center mt-5 mb-5">{% if cart.products.count %}Оформление заказа{% endif %}</h3>
+{% if messages %}
+  {% for message in messages%}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ message }}</strong>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endfor %}
+{% endif %}
+{% if cart.products.count %}
+<div class="container">
+      <div class="row justify-content-md-center">
+<table class="table table-dark table-borderless">
+  <thead>
+    <tr>
+      <th scope="col">Наименование</th>
+<!--      <th scope="col">Изображение</th>-->
+      <th scope="col">Цена</th>
+      <th scope="col">Количество</th>
+      <th scope="col">Общая Цена</th>
+    </tr>
+  </thead>
+  <tbody>
+      {% for item in cart.products.all %}
+        <tr>
+          <th scope="row">{{ item.content_object.title }}</th>
+<!--          <td class="w-25"><img src="{{ item.content_object.image.url }}" class="img-fluid" alt=""></td>-->
+          <td>{{ item.content_object.price }} BYN</td>
+          <td>
+              {{ item.qty }}
+          </td>
+          <td>{{ item.final_price }} BYN</td>
+        </tr>
+      {% endfor %}
+        <td colspan="3"></td>
+        <td><strong>Итого: {{ cart.final_price }}BYN </strong></td>
+
+  </tbody>
+</table>
+      </div>
+</div>
+{% endif %}
+<h3 class="text-center mt-5 mb-5">{% if cart.products.count %}Форма заказа{% endif %}</h3>
+<div class="container">
+      <div class="row justify-content-md-center">
+          <form action="{% url 'make_order' %}" method="POST">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <input type="submit" class="btn btn-success btn-block mb-3 col-12" values="Заказать" style="margin-top: 20px;">
+          </form>
+      </div>
+</div>
+{% endblock %}
